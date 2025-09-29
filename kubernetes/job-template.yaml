@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: proc-job-{UNIQUE_ID}
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 2
+  template:
+    spec:
+      containers:
+      - name: processor
+        image: 192.168.1.200:5000/farmonedge-processor:latest
+        imagePullPolicy: Always
+        command: ["python", "image_processing_pipeline.py"]
+        args: ["{IMAGE_FILENAME}"]
+        env:
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: ORION_URL
+          value: "http://192.168.1.200:1026/v2"
+        - name: MINIO_ENDPOINT
+          value: "minio-service:9000"
+        - name: MINIO_ACCESS_KEY
+          value: "farmonedge"
+        - name: MINIO_SECRET_KEY
+          value: "farmonedge"
+      restartPolicy: Never

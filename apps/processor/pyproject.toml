@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "farmonedge-processor"
+version = "0.1.0"
+description = "Image processing pipeline for FarmOnEdge"
+authors = ["FarmOnEdge"]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+tensorflow = "2.16.1"
+pillow = "^10.0.0"
+requests = "^2.31.0"
+boto3 = "^1.34.0"
+tensorly = "<0.9.0"
+matplotlib = "<4.0.0"
+segmentation-models = "<2.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

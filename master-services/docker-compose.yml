@@ -1,0 +1,30 @@
+services:
+  mongo:
+    image: mongo:4.4.18
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  orion:
+    image: orion:latest
+    ports:
+      - "1026:1026"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: -dbURI mongodb://mongo:27017 -logLevel DEBUG
+
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+
+volumes:
+  mongo-data:
+  registry-data:
