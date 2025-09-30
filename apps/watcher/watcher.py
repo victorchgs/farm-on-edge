@@ -2,8 +2,7 @@ import os
 import time
 import yaml
 import hashlib
-import json
-from flask import Flask, request, jsonify
+from minio import Minio
 from kubernetes import client, config
 
 try:
@@ -16,16 +15,37 @@ except Exception as e:
 
     batch_v1 = None
 
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio-service:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "farmonedge")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "farmonedge")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "insect-images")
 JOB_TEMPLATE_PATH = "/config/job-template.yaml"
 K8S_NAMESPACE = "default"
+POLL_INTERVAL_SECONDS = 30
+PROCESSED_METADATA_KEY = "x-amz-meta-status"
 
-app = Flask(__name__)
+def set_processed_metadata(minio_client, object_name):
+    try:
+        result = minio_client.copy_object(
+            MINIO_BUCKET,
+            object_name,
+            f"/{MINIO_BUCKET}/{object_name}",
+            metadata={"status": "processed"}
+        )
+
+        print(f"Metadado 'processed' adicionado com sucesso ao objeto: {object_name}", flush=True)
+
+        return True
+    except Exception as e:
+        print(f"ERRO ao adicionar metadado ao objeto {object_name}: {e}", flush=True)
+
+        return False
 
 def create_k8s_job(k8s_api, image_filename):
     if not k8s_api:
         print("ERRO: Cliente Kubernetes não inicializado. Abortando criação de Job.", flush=True)
 
-        return
+        return False
 
     try:
         with open(JOB_TEMPLATE_PATH, 'r') as f:
@@ -40,14 +60,14 @@ def create_k8s_job(k8s_api, image_filename):
         if len(jobs.items) > 0:
             print(f"Job com o ID '{job_name}' já existe. Pulando.", flush=True)
 
-            return
+            return False
 
         job_yaml_str = job_yaml_str.replace("{UNIQUE_ID}", job_name)
         job_yaml_str = job_yaml_str.replace("{IMAGE_FILENAME}", image_filename)
 
         job_manifest = yaml.safe_load(job_yaml_str)
 
-        if not job_manifest['metadata'].get('labels'):
+        if 'labels' not in job_manifest['metadata']:
             job_manifest['metadata']['labels'] = {}
 
         job_manifest['metadata']['labels']['farmonedge.io/job-id'] = job_name
@@ -56,38 +76,51 @@ def create_k8s_job(k8s_api, image_filename):
 
         print(f"Job '{job_name}' criado com sucesso para a imagem '{image_filename}'.", flush=True)
 
+        return True
     except Exception as e:
         print(f"ERRO ao criar Job K8s: {e}", flush=True)
 
-@app.route('/events', methods=['POST'])
-def webhook_listener():
-    try:
-        event_data = request.json
+        return False
 
-        print(f"Webhook recebido.", flush=True)
+def main():
+    if not batch_v1:
+        print("--- Falha na inicialização do Watcher. Cliente K8s não disponível. ---", flush=True)
 
-        if "Records" in event_data:
-            for record in event_data["Records"]:
-                event_name = record.get("eventName", "")
+        return
 
-                if "ObjectCreated" in event_name:
-                    object_key = record["s3"]["object"]["key"]
+    print("--- Iniciando Serviço MinIO Watcher (modo Polling Inteligente) ---", flush=True)
 
-                    print(f"Novo objeto detectado via evento: {object_key}", flush=True)
+    minio_client = Minio(MINIO_ENDPOINT, access_key=MINIO_ACCESS_KEY, secret_key=MINIO_SECRET_KEY, secure=False)
 
-                    create_k8s_job(batch_v1, object_key)
+    print(f"Conectado ao MinIO. Monitorando bucket: '{MINIO_BUCKET}'", flush=True)
 
-        return jsonify({"status": "success"}), 200
+    while True:
+        try:
+            objects = minio_client.list_objects(MINIO_BUCKET, recursive=True)
 
-    except Exception as e:
-        print(f"ERRO ao processar webhook: {e}", flush=True)
+            for obj in objects:
+                is_processed = False
 
-        return jsonify({"status": "error", "message": str(e)}), 500
+                try:
+                    stats = minio_client.stat_object(MINIO_BUCKET, obj.object_name)
+
+                    if stats.metadata and stats.metadata.get(PROCESSED_METADATA_KEY.lower()) == "processed":
+                        is_processed = True
+                except Exception as e:
+                    print(f"ERRO ao verificar metadados de {obj.object_name}: {e}", flush=True)
+
+                if not is_processed:
+                    print(f"Novo objeto (não processado) detectado: {obj.object_name}", flush=True)
+
+                    if create_k8s_job(batch_v1, obj.object_name):
+                        set_processed_metadata(minio_client, obj.object_name)
+            
+            time.sleep(POLL_INTERVAL_SECONDS)
+        
+        except Exception as e:
+            print(f"ERRO no loop principal: {e}", flush=True)
+
+            time.sleep(POLL_INTERVAL_SECONDS * 2)
 
 if __name__ == "__main__":
-    if batch_v1:
-        print("--- Iniciando Serviço Watcher (modo Webhook) ---", flush=True)
-
-        app.run(host='0.0.0.0', port=8080)
-    else:
-        print("--- Falha na inicialização do Watcher. Cliente K8s não disponível. ---", flush=True)
+    main()
