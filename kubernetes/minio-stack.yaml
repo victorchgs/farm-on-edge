@@ -36,10 +36,9 @@ spec:
       - name: minio
         image: minio/minio:latest
         command:
+          - "/usr/bin/minio"
           - "server"
           - "/data"
-          - "--address"
-          - ":9000"
           - "--console-address"
           - ":9001"
         env:
