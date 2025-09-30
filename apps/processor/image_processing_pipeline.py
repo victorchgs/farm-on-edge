@@ -84,7 +84,7 @@ def main():
         endpoint_url=f"http://{MINIO_ENDPOINT}",
         aws_access_key_id=MINIO_ACCESS_KEY,
         aws_secret_access_key=MINIO_SECRET_KEY,
-        config=Config(signature_version='s4v4')
+        config=Config(signature_version='s3v4')
     )
 
     if not download_from_minio(s3_client, image_name, temp_image_path):
