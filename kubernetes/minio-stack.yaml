@@ -47,12 +47,11 @@ spec:
         - name: MINIO_ROOT_PASSWORD
           value: "farmonedge"
         ports:
-        - name: api
-          containerPort: 9000
-          hostPort: 9000
         - name: console
           containerPort: 9001
           hostPort: 9001
+        - name: api
+          containerPort: 9000
         volumeMounts:
         - name: minio-data
           mountPath: /data
