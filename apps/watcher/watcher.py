@@ -3,6 +3,7 @@ import time
 import yaml
 import hashlib
 from minio import Minio
+from minio.commonconfig import CopySource
 from kubernetes import client, config
 
 try:
@@ -26,11 +27,13 @@ PROCESSED_METADATA_KEY = "x-amz-meta-status"
 
 def set_processed_metadata(minio_client, object_name):
     try:
-        result = minio_client.copy_object(
+        source = CopySource(MINIO_BUCKET, object_name)
+        minio_client.copy_object(
             MINIO_BUCKET,
             object_name,
-            f"/{MINIO_BUCKET}/{object_name}",
-            metadata={"status": "processed"}
+            source,
+            metadata={"status": "processed"},
+            metadata_directive="REPLACE"
         )
 
         print(f"Metadado 'processed' adicionado com sucesso ao objeto: {object_name}", flush=True)
@@ -58,9 +61,9 @@ def create_k8s_job(k8s_api, image_filename):
         jobs = k8s_api.list_namespaced_job(namespace=K8S_NAMESPACE, label_selector=job_label_selector)
 
         if len(jobs.items) > 0:
-            print(f"Job com o ID '{job_name}' já existe. Pulando.", flush=True)
+            print(f"Job com o ID '{job_name}' já existe. Aplicando metadado para evitar reprocessamento.", flush=True)
 
-            return False
+            return True 
 
         job_yaml_str = job_yaml_str.replace("{UNIQUE_ID}", job_name)
         job_yaml_str = job_yaml_str.replace("{IMAGE_FILENAME}", image_filename)
@@ -114,9 +117,8 @@ def main():
 
                     if create_k8s_job(batch_v1, obj.object_name):
                         set_processed_metadata(minio_client, obj.object_name)
-            
+
             time.sleep(POLL_INTERVAL_SECONDS)
-        
         except Exception as e:
             print(f"ERRO no loop principal: {e}", flush=True)
 
