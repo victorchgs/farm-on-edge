@@ -113,6 +113,7 @@ def main():
     reading_id = f"urn:ngsi-ld:Reading:{capture_trap_id}:{timestamp_int}"
     reading_entity = {
         "id": reading_id, "type": "InsectReading",
+        "sourceImage": {"type": "Text", "value": image_name},
         "refInsectTrap": {"type": "Relationship", "value": capture_trap_id},
         "processing_node": {"type": "Text", "value": processing_node},
         "has_insects": {"type": "Boolean", "value": has_insects},
