@@ -4,7 +4,7 @@ from botocore.client import Config
 import datetime
 import os
 
-MINIO_ENDPOINT = "192.168.1.200:9000"
+MINIO_ENDPOINT = "192.168.1.200:30000"
 MINIO_ACCESS_KEY = "farmonedge"
 MINIO_SECRET_KEY = "farmonedge"
 MINIO_BUCKET = "insect-images"
