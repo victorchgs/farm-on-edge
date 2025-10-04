@@ -8,17 +8,17 @@ kind: Role
 metadata:
   name: job-creator-role
 rules:
-- apiGroups: ["batch"]
-  resources: ["jobs"]
-  verbs: ["create", "get", "list"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: watcher-job-creator-binding
 subjects:
-- kind: ServiceAccount
-  name: watcher-sa
+  - kind: ServiceAccount
+    name: watcher-sa
 roleRef:
   kind: Role
   name: job-creator-role
@@ -42,27 +42,27 @@ spec:
       nodeSelector:
         node-role: master
       tolerations:
-      - key: "node-role.kubernetes.io/control-plane"
-        operator: "Exists"
-        effect: "NoSchedule"
-      - key: "node-role.kubernetes.io/master"
-        operator: "Exists"
-        effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
       containers:
-      - name: watcher
-        image: 192.168.1.200:5000/farmonedge-watcher:latest
-        imagePullPolicy: Always
-        env:
-        - name: MINIO_ENDPOINT
-          value: "minio-service:9000"
-        - name: MINIO_ACCESS_KEY
-          value: "farmonedge"
-        - name: MINIO_SECRET_KEY
-          value: "farmonedge"
-        volumeMounts:
-        - name: job-template-volume
-          mountPath: /config
+        - name: watcher
+          image: 192.168.1.200:5000/farmonedge-watcher:latest
+          imagePullPolicy: Always
+          env:
+            - name: MINIO_ENDPOINT
+              value: "minio-service:9000"
+            - name: MINIO_ACCESS_KEY
+              value: "farmonedge"
+            - name: MINIO_SECRET_KEY
+              value: "farmonedge"
+          volumeMounts:
+            - name: job-template-volume
+              mountPath: /config
       volumes:
-      - name: job-template-volume
-        configMap:
-          name: job-template-config
+        - name: job-template-volume
+          configMap:
+            name: job-template-config
