@@ -8,7 +8,7 @@ from botocore.client import Config
 from src.main import RunModels
 
 ORION_URL = os.getenv("ORION_URL", "http://192.168.1.200:1026/v2")
-MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "192.168.1.200:9000")
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio-service:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "farmonedge")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "farmonedge")
 MINIO_BUCKET = os.getenv("MINIO_BUCKET", "insect-images")
@@ -112,14 +112,16 @@ def main():
     timestamp_int = str(int(time.time()))
     timestamp_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
-    farm_id = full_object_name.split('/')[0]
+    farm_id = full_object_name.split('/')[0] if '/' in full_object_name else "default-farm"
 
     reading_id = f"urn:ngsi-ld:Reading:{farm_id}:{capture_trap_id}:{timestamp_int}"
+    trap_urn = f"urn:ngsi-ld:InsectTrap:{farm_id}:{capture_trap_id}"
+
     reading_entity = {
         "id": reading_id,
         "type": "InsectReading",
         "sourceImage": {"type": "Text", "value": full_object_name},
-        "refInsectTrap": {"type": "Relationship", "value": f"urn:ngsi-ld:InsectTrap:{farm_id}:{capture_trap_id}"},
+        "refInsectTrap": {"type": "Relationship", "value": trap_urn},
         "processing_node": {"type": "Text", "value": processing_node},
         "has_insects": {"type": "Boolean", "value": has_insects},
         "processing_duration_sec": {"type": "Number", "value": round(end_time - start_time, 2)},
@@ -136,7 +138,7 @@ def main():
     }
 
     create_fiware_reading(reading_entity)
-    upsert_trap_entity(f"urn:ngsi-ld:InsectTrap:{farm_id}:{capture_trap_id}", trap_latest_data)
+    upsert_trap_entity(trap_urn, trap_latest_data)
 
     os.remove(temp_image_path)
     print("--- Pipeline de Processamento Finalizado ---")

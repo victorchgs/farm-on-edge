@@ -61,9 +61,9 @@ def create_k8s_job(k8s_api, image_filename):
         jobs = k8s_api.list_namespaced_job(namespace=K8S_NAMESPACE, label_selector=job_label_selector)
 
         if len(jobs.items) > 0:
-            print(f"Job com o ID '{job_name}' já existe. Aplicando metadado para evitar reprocessamento.", flush=True)
+            print(f"Job com o ID '{job_name}' já existe. Aguardando próximo ciclo.", flush=True)
 
-            return True 
+            return
 
         job_yaml_str = job_yaml_str.replace("{UNIQUE_ID}", job_name)
         job_yaml_str = job_yaml_str.replace("{IMAGE_FILENAME}", image_filename)

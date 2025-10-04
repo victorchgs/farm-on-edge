@@ -4,12 +4,19 @@ from botocore.client import Config
 import datetime
 import os
 
-MINIO_ENDPOINT = "192.168.1.200:30000"
 MINIO_ACCESS_KEY = "farmonedge"
 MINIO_SECRET_KEY = "farmonedge"
 MINIO_BUCKET = "insect-images"
 
-def upload_to_minio(file_path, farm_id, trap_id):
+def upload_to_minio(file_path, farm_id, trap_id, minio_endpoint):
+    """
+    Faz o upload de um arquivo de imagem para o MinIO, organizando-o por FARM_ID.
+
+    :param file_path: Caminho para o arquivo de imagem local.
+    :param farm_id: ID único da fazenda.
+    :param trap_id: ID único da armadilha.
+    :param minio_endpoint: Endereço (IP:Porta) do servidor MinIO.
+    """
     if not os.path.exists(file_path):
         print(f"ERRO: O arquivo de imagem não foi encontrado em '{file_path}'")
 
@@ -18,7 +25,7 @@ def upload_to_minio(file_path, farm_id, trap_id):
     try:
         s3_client = boto3.client(
             's3',
-            endpoint_url=f"http://{MINIO_ENDPOINT}",
+            endpoint_url=f"http://{minio_endpoint}",
             aws_access_key_id=MINIO_ACCESS_KEY,
             aws_secret_access_key=MINIO_SECRET_KEY,
             config=Config(signature_version='s3v4')
@@ -29,7 +36,7 @@ def upload_to_minio(file_path, farm_id, trap_id):
 
         object_name = f"{farm_id}/{trap_id}_{timestamp}{file_extension}"
 
-        print(f"Fazendo upload de '{file_path}' para o MinIO como '{object_name}'...")
+        print(f"Fazendo upload de '{file_path}' para o MinIO em '{minio_endpoint}' como '{object_name}'...")
 
         s3_client.upload_file(file_path, MINIO_BUCKET, object_name)
 
@@ -42,7 +49,13 @@ if __name__ == "__main__":
     parser.add_argument("file", type=str, help="O caminho para o arquivo de imagem a ser enviado.")
     parser.add_argument("--farm-id", type=str, required=True, help="O ID da fazenda (ex: FAZENDA-BOA-VISTA).")
     parser.add_argument("--trap-id", type=str, required=True, help="O ID da armadilha (ex: TRAP-01).")
+    parser.add_argument(
+        "--endpoint",
+        type=str,
+        default="192.168.1.200:9000",
+        help="O endereço IP:Porta do servidor MinIO."
+    )
 
     args = parser.parse_args()
 
-    upload_to_minio(args.file, args.farm_id, args.trap_id)
+    upload_to_minio(args.file, args.farm_id, args.trap_id, args.endpoint)

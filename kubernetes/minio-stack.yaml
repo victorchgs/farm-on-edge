@@ -51,8 +51,10 @@ spec:
           ports:
             - name: api
               containerPort: 9000
+              hostPort: 9000
             - name: console
               containerPort: 9001
+              hostPort: 9001
           volumeMounts:
             - name: minio-data
               mountPath: /data
@@ -66,7 +68,6 @@ kind: Service
 metadata:
   name: minio-service
 spec:
-  type: NodePort
   selector:
     app: minio
   ports:
@@ -74,9 +75,7 @@ spec:
       protocol: TCP
       port: 9000
       targetPort: 9000
-      nodePort: 30000
     - name: console
       protocol: TCP
       port: 9001
       targetPort: 9001
-      nodePort: 30001
