@@ -76,8 +76,10 @@ def main():
     if len(sys.argv) < 2:
         sys.exit("ERRO: Nome do objeto de imagem não fornecido.")
 
-    image_name = sys.argv[1]
-    temp_image_path = os.path.join("/tmp", image_name)
+    full_object_name = sys.argv[1]
+
+    file_name = os.path.basename(full_object_name)
+    temp_image_path = os.path.join("/tmp", file_name)
 
     s3_client = boto3.client(
         's3',
@@ -87,13 +89,13 @@ def main():
         config=Config(signature_version='s3v4')
     )
 
-    if not download_from_minio(s3_client, image_name, temp_image_path):
+    if not download_from_minio(s3_client, full_object_name, temp_image_path):
         sys.exit("Falha no download. Abortando pipeline.")
 
     try:
-        capture_trap_id = image_name.split('_')[0]
+        capture_trap_id = file_name.split('_')[0]
     except IndexError:
-        sys.exit(f"ERRO: Nome de arquivo inválido: '{image_name}'")
+        sys.exit(f"ERRO: Nome de arquivo inválido: '{file_name}'")
 
     processing_node = os.getenv("KUBE_NODE_NAME", "unknown_node")
 
@@ -110,11 +112,14 @@ def main():
     timestamp_int = str(int(time.time()))
     timestamp_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
-    reading_id = f"urn:ngsi-ld:Reading:{capture_trap_id}:{timestamp_int}"
+    farm_id = full_object_name.split('/')[0]
+
+    reading_id = f"urn:ngsi-ld:Reading:{farm_id}:{capture_trap_id}:{timestamp_int}"
     reading_entity = {
-        "id": reading_id, "type": "InsectReading",
-        "sourceImage": {"type": "Text", "value": image_name},
-        "refInsectTrap": {"type": "Relationship", "value": capture_trap_id},
+        "id": reading_id,
+        "type": "InsectReading",
+        "sourceImage": {"type": "Text", "value": full_object_name},
+        "refInsectTrap": {"type": "Relationship", "value": f"urn:ngsi-ld:InsectTrap:{farm_id}:{capture_trap_id}"},
         "processing_node": {"type": "Text", "value": processing_node},
         "has_insects": {"type": "Boolean", "value": has_insects},
         "processing_duration_sec": {"type": "Number", "value": round(end_time - start_time, 2)},
@@ -131,7 +136,7 @@ def main():
     }
 
     create_fiware_reading(reading_entity)
-    upsert_trap_entity(capture_trap_id, trap_latest_data)
+    upsert_trap_entity(f"urn:ngsi-ld:InsectTrap:{farm_id}:{capture_trap_id}", trap_latest_data)
 
     os.remove(temp_image_path)
     print("--- Pipeline de Processamento Finalizado ---")
