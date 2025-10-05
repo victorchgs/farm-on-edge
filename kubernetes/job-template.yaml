@@ -27,6 +27,11 @@ spec:
                   fieldPath: spec.nodeName
             - name: ORION_URL
               value: "http://192.168.1.200:1026/v2"
+            - name: MONGO_ATLAS_URI
+              valueFrom:
+                secretKeyRef:
+                  name: atlas-credentials
+                  key: uri
             - name: MINIO_ENDPOINT
               value: "minio-service:9000"
             - name: MINIO_ACCESS_KEY

@@ -6,8 +6,11 @@ import requests
 import boto3
 from botocore.client import Config
 from src.main import RunModels
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 
 ORION_URL = os.getenv("ORION_URL", "http://192.168.1.200:1026/v2")
+MONGO_ATLAS_URI = os.getenv("MONGO_ATLAS_URI")
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio-service:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "farmonedge")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "farmonedge")
@@ -69,6 +72,41 @@ def upsert_trap_entity(trap_id, latest_data):
         print(f"ERRO ao atualizar entidade da armadilha: {e}")
 
         return False
+
+def send_to_mongo_atlas(reading_entity):
+    if not MONGO_ATLAS_URI:
+        print("AVISO: String de conexão do MongoDB Atlas não configurada. Pulando envio para a nuvem.")
+
+        return False
+
+    try:
+        print("Conectando ao MongoDB Atlas...")
+
+        client = MongoClient(MONGO_ATLAS_URI)
+
+        client.admin.command('ping') 
+
+        db = client.farmonedge_central
+        collection = db.readings
+
+        print(f"Inserindo leitura '{reading_entity['id']}' no MongoDB Atlas...")
+
+        collection.insert_one(reading_entity)
+
+        print("Leitura inserida com sucesso no Atlas.")
+
+        return True
+    except ConnectionFailure as e:
+        print(f"ERRO CRÍTICO: Falha ao conectar no MongoDB Atlas: {e}")
+
+        return False
+    except Exception as e:
+        print(f"ERRO ao enviar dados para o MongoDB Atlas: {e}")
+
+        return False
+    finally:
+        if 'client' in locals():
+            client.close()
 
 def main():
     print("--- Iniciando Pipeline de Processamento ---")
@@ -139,6 +177,7 @@ def main():
 
     create_fiware_reading(reading_entity)
     upsert_trap_entity(trap_urn, trap_latest_data)
+    send_to_mongo_atlas(reading_entity)
 
     os.remove(temp_image_path)
     print("--- Pipeline de Processamento Finalizado ---")

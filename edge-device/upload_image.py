@@ -31,7 +31,7 @@ def upload_to_minio(file_path, farm_id, trap_id, minio_endpoint):
             config=Config(signature_version='s3v4')
         )
 
-        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        timestamp = datetime.datetime.now().strftime("%d-%m-%Y@%H_%M_%S")
         file_extension = os.path.splitext(file_path)[1]
 
         object_name = f"{farm_id}/{trap_id}_{timestamp}{file_extension}"

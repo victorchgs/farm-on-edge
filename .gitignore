@@ -6,3 +6,6 @@ __pycache__/
 .venv
 venv/
 ENV/
+
+# Secrets file
+secret.yaml
