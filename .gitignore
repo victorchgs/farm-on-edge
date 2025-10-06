@@ -9,3 +9,4 @@ ENV/
 
 # Secrets file
 kubernetes/*-secret.yaml
+kubernetes/prometheus-config.yaml
