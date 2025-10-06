@@ -59,17 +59,6 @@ spec:
       containers:
         - name: prometheus
           image: quay.io/prometheus/prometheus:v2.45.3
-          env:
-            - name: GRAFANA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: grafana-cloud-credentials
-                  key: username
-            - name: GRAFANA_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: grafana-cloud-credentials
-                  key: password
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
           ports:
