@@ -10,10 +10,7 @@ data:
       external_labels:
         farm_id: '<INSIRA_O_ID_DA_SUA_FAZENDA_AQUI>'
     remote_write:
-      - url: "https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push"
-        basic_auth:
-          username_file: /etc/prometheus-secrets/username
-          password_file: /etc/prometheus-secrets/password
+      - url: "https://$(GRAFANA_USER):$(GRAFANA_PASS)@prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push"
     scrape_configs:
       - job_name: 'prometheus'
         static_configs:
