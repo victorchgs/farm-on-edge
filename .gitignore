@@ -8,4 +8,4 @@ venv/
 ENV/
 
 # Secrets file
-secret.yaml
+kubernetes/*-secret.yaml

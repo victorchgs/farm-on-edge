@@ -86,7 +86,7 @@ def send_to_mongo_atlas(reading_entity):
 
         client.admin.command('ping') 
 
-        db = client.farmonedge_central
+        db = client.farmonedge_db
         collection = db.readings
 
         print(f"Inserindo leitura '{reading_entity['id']}' no MongoDB Atlas...")
