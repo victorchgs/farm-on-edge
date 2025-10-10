@@ -13,11 +13,11 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              memory: "600Mi"
+              memory: "750Mi"
               cpu: "500m"
             limits:
-              memory: "850Mi"
-              cpu: "2500m"
+              memory: "1200Mi"
+              cpu: "3000m"
           command: ["python", "image_processing_pipeline.py"]
           args: ["{IMAGE_FILENAME}"]
           env:
