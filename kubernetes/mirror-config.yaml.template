@@ -1,0 +1,7 @@
+# ESTE É UM TEMPLATE. NÃO COLOQUE SEUS SEGREDOS AQUI.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mirror-config
+data:
+  S3_BUCKET_NAME: "<SEU-NOME-DE-BUCKET-S3-AQUI>"

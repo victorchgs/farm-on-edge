@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-s3-mirror
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio-s3-mirror
+  template:
+    metadata:
+      labels:
+        app: minio-s3-mirror
+    spec:
+      nodeSelector:
+        node-role: master
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: mc-mirror
+          image: minio/mc:latest
+          command:
+            - "/bin/sh"
+            - "-c"
+          args:
+            - >
+              echo "Configurando aliases...";
+              mc alias set local http://minio-service:9000 $(MINIO_ACCESS_KEY) $(MINIO_SECRET_KEY);
+              mc alias set s3_backup https://s3.amazonaws.com $(AWS_ACCESS_KEY) $(AWS_SECRET_KEY);
+              echo "Iniciando espelhamento contínuo para o bucket $(S3_BUCKET_NAME)...";
+              mc mirror --overwrite --remove --watch local/insect-images s3_backup/$(S3_BUCKET_NAME);
+          env:
+            - name: MINIO_ACCESS_KEY
+              value: "farmonedge"
+            - name: MINIO_SECRET_KEY
+              value: "farmonedge"
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: access_key
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: secret_key
+            - name: S3_BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mirror-config
+                  key: S3_BUCKET_NAME

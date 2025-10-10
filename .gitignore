@@ -10,3 +10,5 @@ ENV/
 # Secrets file
 kubernetes/*-secret.yaml
 kubernetes/prometheus-config.yaml
+kubernetes/aws-credentials-secret.yaml
+kubernetes/mirror-config.yaml
