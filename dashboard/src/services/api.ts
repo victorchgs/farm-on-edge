@@ -13,12 +13,16 @@ const formatFarmName = (id: string): string =>
 
 const fetchFarmsFromApi = async (): Promise<Farm[]> => {
   const { data } = await axios.get<Farm[]>(`${API_BASE_URL}/farms`);
+
   return data;
 };
+
 const fetchTrapsByFarmFromApi = async (farmId: string): Promise<Trap[]> => {
   const { data } = await axios.get<Trap[]>(`${API_BASE_URL}/traps/${farmId}`);
+
   return data;
 };
+
 const fetchReadingsByTrapFromApi = async (
   trapId: string
 ): Promise<Reading[]> => {
@@ -26,12 +30,15 @@ const fetchReadingsByTrapFromApi = async (
   const { data } = await axios.get<Reading[]>(
     `${API_BASE_URL}/readings/${encodedTrapId}`
   );
+
   return data;
 };
+
 const fetchImageUrlFromApi = async (imageKey: string): Promise<string> => {
   const { data } = await axios.get<{ url: string }>("/api/images", {
     params: { key: imageKey },
   });
+
   return data.url;
 };
 
@@ -52,27 +59,34 @@ const fetchFarmsFromFiware = async (): Promise<Farm[]> => {
   const { data: entities } = await axios.get(`${FIWARE_API_URL}/entities`, {
     params: { type: "InsectTrap", attrs: "id" },
   });
+
   const farmIds = new Set<string>();
+
   entities.forEach((entity: any) => {
     const parts = entity.id.split(":");
+
     if (parts.length > 3) farmIds.add(parts[3]);
   });
+
   return Array.from(farmIds).map((id) => ({ id, name: formatFarmName(id) }));
 };
+
 const fetchTrapsByFarmFromFiware = async (farmId: string): Promise<Trap[]> => {
   const { data: entities } = await axios.get(`${FIWARE_API_URL}/entities`, {
     params: {
       type: "InsectTrap",
-      q: `id==urn:ngsi-ld:InsectTrap:${farmId}:*`,
+      idPattern: `^urn:ngsi-ld:InsectTrap:${farmId}:.*`,
       attrs: "last_insect_count,last_reading_at",
     },
   });
+
   return entities.map((entity: any) => ({
     _id: entity.id,
     last_insect_count: entity.last_insect_count?.value ?? 0,
     last_reading_at: entity.last_reading_at?.value,
   }));
 };
+
 const fetchReadingsByTrapFromFiware = async (
   trapId: string
 ): Promise<Reading[]> => {
@@ -83,6 +97,7 @@ const fetchReadingsByTrapFromFiware = async (
       orderBy: "processed_at",
     },
   });
+
   return entities.map((entity: any) => ({
     _id: entity.id,
     insect_count: entity.insect_count?.value ?? 0,
@@ -90,6 +105,7 @@ const fetchReadingsByTrapFromFiware = async (
     sourceImage: entity.sourceImage?.value,
   }));
 };
+
 const fetchImageUrlFromMinio = (imageKey: string): string => {
   return `${MINIO_API_URL}/${imageKey}`;
 };
