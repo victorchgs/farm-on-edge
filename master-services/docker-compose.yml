@@ -16,7 +16,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    command: -dbURI mongodb://mongo:27017 -logLevel DEBUG -corsOrigin '*'
+    command: -dbURI mongodb://mongo:27017 -logLevel DEBUG -corsOrigin '${DASHBOARD_ORIGIN}'
 
   registry:
     image: registry:2
