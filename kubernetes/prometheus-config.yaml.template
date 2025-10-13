@@ -11,7 +11,7 @@ data:
       external_labels:
         farm_id: '<INSIRA_O_ID_DA_SUA_FAZENDA_AQUI>'
     remote_write:
-      - url: "https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push"
+      - url: "<INSIRA_A_URL_DO_REMOTE_WRITE_AQUI>"
         basic_auth:
           username: "<SEU_GRAFANA_USERNAME_AQUI>"
           password: "<SUA_GRAFANA_API_KEY_AQUI>"

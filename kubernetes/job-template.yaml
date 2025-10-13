@@ -14,9 +14,9 @@ spec:
           resources:
             requests:
               memory: "750Mi"
-              cpu: "500m"
+              cpu: "800m"
             limits:
-              memory: "1200Mi"
+              memory: "800Mi"
               cpu: "3000m"
           command: ["python", "image_processing_pipeline.py"]
           args: ["{IMAGE_FILENAME}"]

@@ -7,6 +7,9 @@ __pycache__/
 venv/
 ENV/
 
+# Processing models
+apps/processor/models
+
 # Secrets file
 kubernetes/*-secret.yaml
 kubernetes/prometheus-config.yaml
