@@ -1,4 +1,4 @@
-import { Farm, Reading, Trap } from "@/lib/schemas";
+import { Farm, Reading, Trap, type LoginFormData } from "@/lib/schemas";
 import axios from "axios";
 
 const API_BASE_URL = "/api";
@@ -42,17 +42,15 @@ const fetchImageUrlFromApi = async (imageKey: string): Promise<string> => {
   return data.url;
 };
 
-export const mockLogin = async (
-  email: string,
-  password: string
+export const loginUser = async (
+  credentials: LoginFormData
 ): Promise<{ token: string }> => {
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  const { data } = await axios.post<{ token: string }>(
+    "/api/login",
+    credentials
+  );
 
-  if (email && password.length >= 6) {
-    return { token: "mock_jwt_token_12345" };
-  }
-
-  throw new Error("Credenciais inválidas");
+  return data;
 };
 
 const fetchFarmsFromFiware = async (): Promise<Farm[]> => {
