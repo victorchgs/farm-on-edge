@@ -3,7 +3,7 @@ import "dotenv/config";
 import {
   fetchTrapsFromAtlas,
   fetchTrapsFromFiware,
-} from "../../server/logic/traps";
+} from "../../server/logic/traps.js";
 import { Trap } from "../../src/lib/schemas";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

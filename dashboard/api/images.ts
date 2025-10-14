@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import "dotenv/config";
-import { getMinioDirectUrl, getS3SignedUrl } from "../server/logic/images";
+import { getMinioDirectUrl, getS3SignedUrl } from "../server/logic/images.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { key } = req.query;

@@ -3,7 +3,7 @@ import "dotenv/config";
 import {
   fetchReadingsFromAtlas,
   fetchReadingsFromFiware,
-} from "../../server/logic/reading";
+} from "../../server/logic/reading.js";
 import { Reading } from "../../src/lib/schemas";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

@@ -3,7 +3,7 @@ import "dotenv/config";
 import {
   fetchFarmsFromAtlas,
   fetchFarmsFromFiware,
-} from "../server/logic/farms";
+} from "../server/logic/farms.js";
 import { Farm } from "../src/lib/schemas";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

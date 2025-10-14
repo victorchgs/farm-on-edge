@@ -1,6 +1,7 @@
 {
   "name": "dashboard-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "API Backend para o Dashboard Farm On Edge",
   "main": "dist/server.js",
   "scripts": {
