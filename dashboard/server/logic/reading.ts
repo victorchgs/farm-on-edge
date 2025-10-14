@@ -1,7 +1,7 @@
-import { Reading } from "../../src/lib/schemas";
 import axios from "axios";
 import "dotenv/config";
 import { MongoClient } from "mongodb";
+import { Reading } from "../src/lib/schemas";
 
 export const fetchReadingsFromAtlas = async (
   trapId: string

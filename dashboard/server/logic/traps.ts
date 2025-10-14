@@ -1,7 +1,7 @@
-import { Trap } from "../../src/lib/schemas";
 import axios from "axios";
 import "dotenv/config";
 import { MongoClient } from "mongodb";
+import { Trap } from "../src/lib/schemas";
 
 export const fetchTrapsFromAtlas = async (farmId: string): Promise<Trap[]> => {
   if (!process.env.MONGODB_ATLAS_URI) {

@@ -1,7 +1,7 @@
-import { Farm } from "../../src/lib/schemas";
 import axios from "axios";
 import "dotenv/config";
 import { MongoClient } from "mongodb";
+import type { Farm } from "../src/lib/schemas";
 
 const formatFarmName = (id: string): string => {
   return id
