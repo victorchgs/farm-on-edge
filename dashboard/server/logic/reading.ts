@@ -1,4 +1,4 @@
-import { Reading } from "@/lib/schemas";
+import { Reading } from "../../src/lib/schemas";
 import axios from "axios";
 import "dotenv/config";
 import { MongoClient } from "mongodb";

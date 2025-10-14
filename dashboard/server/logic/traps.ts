@@ -1,4 +1,4 @@
-import { Trap } from "@/lib/schemas";
+import { Trap } from "../../src/lib/schemas";
 import axios from "axios";
 import "dotenv/config";
 import { MongoClient } from "mongodb";
@@ -32,7 +32,10 @@ export const fetchTrapsFromAtlas = async (farmId: string): Promise<Trap[]> => {
         },
       },
     ];
-    return await collection.aggregate(pipeline).toArray();
+
+    const result = await collection.aggregate<Trap>(pipeline).toArray();
+
+    return result;
   } finally {
     await client.close();
   }
@@ -40,12 +43,12 @@ export const fetchTrapsFromAtlas = async (farmId: string): Promise<Trap[]> => {
 
 export const fetchTrapsFromFiware = async (farmId: string): Promise<Trap[]> => {
   const FIWARE_API_URL =
-    process.env.VITE_FIWARE_API_URL || "http://192.168.1.200:1026/v2";
+    process.env.VITE_FIWARE_API_URL || "http://192.1168.1.200:1026/v2";
 
   const { data: entities } = await axios.get(`${FIWARE_API_URL}/entities`, {
     params: {
       type: "InsectTrap",
-      q: `id==urn:ngsi-ld:InsectTrap:${farmId}:*`,
+      idPattern: `^urn:ngsi-ld:InsectTrap:${farmId}:.*`,
       attrs: "last_insect_count,last_reading_at",
     },
   });

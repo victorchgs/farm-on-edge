@@ -1,4 +1,4 @@
-import { Farm } from "@/lib/schemas";
+import { Farm } from "../../src/lib/schemas";
 import axios from "axios";
 import "dotenv/config";
 import { MongoClient } from "mongodb";
