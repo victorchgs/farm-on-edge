@@ -3,7 +3,6 @@ import axios from "axios";
 
 const API_BASE_URL = "/api";
 const FIWARE_API_URL = "http://192.168.1.200:1026/v2";
-const MINIO_API_URL = "http://192.168.1.200:9000/insect-images";
 
 const formatFarmName = (id: string): string =>
   id
@@ -105,7 +104,7 @@ const fetchReadingsByTrapFromFiware = async (
 };
 
 const fetchImageUrlFromMinio = (imageKey: string): string => {
-  return `${MINIO_API_URL}/${imageKey}`;
+  return `/minio/insect-images/${imageKey}`;
 };
 
 const isLocal = import.meta.env.VITE_APP_ENV === "local";
